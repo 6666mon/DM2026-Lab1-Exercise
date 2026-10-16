@@ -52,16 +52,16 @@ def make_tools(session):
 
         # Filter terms: terms with variance < threshold are removed
         retained_mask = variances >= threshold
-        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep]
-        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep]
+        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep][:20]
+        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep][:20]
 
         result_id = session.next_result_id("variance_filter")
         summary = {
             "result_id": result_id,
             "threshold": threshold,
             "total_terms": len(session.feature_names),
-            "retained_terms_count": len(retained_terms),
-            "removed_terms_count": len(removed_terms),
+            "retained_terms_count": int(np.sum(retained_mask)),
+            "removed_terms_count": int(np.sum(~retained_mask)),
             "retained_terms": retained_terms,
             "removed_terms": removed_terms
         }
@@ -160,8 +160,8 @@ def make_tools(session):
         else:
             retained_mask = pearson_rs >= threshold
 
-        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep]
-        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep]
+        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep][:20]
+        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep][:20]
 
         result_id = session.next_result_id("pearson_filter")
         summary = {
@@ -170,8 +170,8 @@ def make_tools(session):
             "threshold": threshold,
             "abs_value": abs_value,
             "total_terms": len(session.feature_names),
-            "retained_terms_count": len(retained_terms),
-            "removed_terms_count": len(removed_terms),
+            "retained_terms_count": int(np.sum(retained_mask)),
+            "removed_terms_count": int(np.sum(~retained_mask)),
             "retained_terms": retained_terms,
             "removed_terms": removed_terms
         }
@@ -270,8 +270,8 @@ def make_tools(session):
         else:
             retained_mask = spearman_rhos >= threshold
 
-        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep]
-        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep]
+        retained_terms = [name for name, keep in zip(session.feature_names, retained_mask) if keep][:20]
+        removed_terms = [name for name, keep in zip(session.feature_names, retained_mask) if not keep][:20]
 
         result_id = session.next_result_id("spearman_filter")
         summary = {
@@ -280,8 +280,8 @@ def make_tools(session):
             "threshold": threshold,
             "abs_value": abs_value,
             "total_terms": len(session.feature_names),
-            "retained_terms_count": len(retained_terms),
-            "removed_terms_count": len(removed_terms),
+            "retained_terms_count": int(np.sum(retained_mask)),
+            "removed_terms_count": int(np.sum(~retained_mask)),
             "retained_terms": retained_terms,
             "removed_terms": removed_terms
         }

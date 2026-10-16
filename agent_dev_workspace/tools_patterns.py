@@ -191,7 +191,7 @@ def make_tools(session):
             "category_name": category_name,
             "filtering_method": filtering_method,
             "algorithm": algorithm,
-            "patterns": patterns_list,
+            "patterns": patterns_list[:50],
             "pattern_count": len(patterns_list)
         }
 

@@ -58,8 +58,15 @@ def make_tools(session):
         if session.dataframe is None:
             raise ValueError("No dataset loaded in session. Call load_dataset_tool first.")
 
+        actual_n = min(n_rows, 5) if n_rows > 0 else 5
         df = session.dataframe
-        df_head = df.head(n_rows)
+        df_head = session.dataframe.head(actual_n)
+
+        records = df_head.to_dict(orient="records")
+        for rec in records:
+            for k, v in rec.items():
+                if isinstance(v, str) and len(v) > 200:
+                    rec[k] = v[:200] + "..."
 
         result_id = session.next_result_id("inspect_data")
         summary = {
@@ -67,7 +74,7 @@ def make_tools(session):
             "n_rows": len(df_head),
             "total_rows": len(df),
             "columns": list(df.columns),
-            "sample_records": df_head.to_dict(orient="records")
+            "sample_records": records
         }
 
         session.store_result("inspect_data_tool", {"n_rows": n_rows}, summary)
@@ -245,6 +252,8 @@ def make_tools(session):
 
         Returns:
             A summary dictionary containing result_id, original_rows, sampled_rows, sample_indices, and sample_records.
+            Text values in sample_records are truncated to at most 200 characters, sample_records contains at most 5 items,
+            and sample_indices contains at most 50 indices, while sampled_rows reports the exact size of the sampled dataset.
         """
         if session.dataframe is None:
             raise ValueError("No dataset loaded in session. Call load_dataset_tool first.")
@@ -267,13 +276,20 @@ def make_tools(session):
         # Update session.dataframe in place and reset index
         session.dataframe = sampled_df.reset_index(drop=True)
 
+        # Format sample records for display: slice to at most 5 records and truncate text strings to 200 chars
+        display_records = session.dataframe.head(5).to_dict(orient="records")
+        for rec in display_records:
+            for k, v in rec.items():
+                if isinstance(v, str) and len(v) > 200:
+                    rec[k] = v[:200]
+
         result_id = session.next_result_id("sample_data")
         summary = {
             "result_id": result_id,
             "original_rows": original_rows,
             "sampled_rows": sampled_rows,
-            "sample_indices": sample_indices,
-            "sample_records": session.dataframe.to_dict(orient="records")
+            "sample_indices": sample_indices[:50],
+            "sample_records": display_records
         }
 
         session.store_result(

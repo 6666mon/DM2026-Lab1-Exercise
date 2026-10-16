@@ -30,7 +30,8 @@ def make_tools(session):
 
         Requires session.feature_matrix to be populated (e.g. via build_dtm_tool).
         Computes 2D reduced representation, generates a scatter plot colored by category on
-        session.pending_figure, stores coordinates in session.artifacts, and returns a summary.
+        session.pending_figure, stores full coordinates in session.artifacts, and returns a summary
+        containing up to the first 50 coordinates to keep output concise.
 
         Args:
             method: Reduction method to use ("pca", "tsne", or "umap"). Default is "pca".
@@ -40,7 +41,7 @@ def make_tools(session):
             random_state: Random seed for reproducibility (t-SNE/UMAP or randomized PCA).
 
         Returns:
-            Dict containing result_id, method, reduced coordinates, and explained variance (if PCA).
+            Dict containing result_id, method, n_samples, truncated coordinates (first 50), and explained variance (if PCA).
         """
         if session.feature_matrix is None:
             return {
@@ -73,7 +74,7 @@ def make_tools(session):
         else:
             return {"error": f"Unsupported reduction method: '{method}'."}
 
-        # Store reduced coordinates in session.artifacts
+        # Store full reduced coordinates in session.artifacts
         session.artifacts["reduced_coordinates"] = X_reduced
         session.artifacts[f"reduced_{method}"] = X_reduced
 
@@ -116,7 +117,8 @@ def make_tools(session):
             "result_id": result_id,
             "method": method,
             "n_components": n_components,
-            "coordinates": X_reduced.tolist(),
+            "n_samples": len(X_reduced),
+            "coordinates": X_reduced[:50].tolist(),
         }
         if explained_variance_ratio is not None:
             summary["explained_variance_ratio"] = explained_variance_ratio
@@ -165,7 +167,7 @@ def make_tools(session):
             "result_id": result_id,
             "classes": classes,
             "shape": list(binary_matrix.shape),
-            "binarized_labels": binary_matrix.tolist(),
+            "binarized_labels": binary_matrix[:20].tolist(),
         }
 
         session.store_result("binarize_labels_tool", {}, summary)
